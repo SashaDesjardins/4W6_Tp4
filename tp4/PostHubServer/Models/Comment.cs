@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace PostHubServer.Models
 {
@@ -19,7 +20,7 @@ namespace PostHubServer.Models
         // Si ce commentaire est le commentaire principal du post, référence vers le post en question
         [InverseProperty("MainComment")]
         public virtual Post? MainCommentOf { get; set; }
-
+        [JsonIgnore]
         [InverseProperty("Comments")]
         public virtual User? User { get; set; }
 
@@ -28,6 +29,8 @@ namespace PostHubServer.Models
 
         [InverseProperty("Downvotes")]
         public virtual List<User>? Downvoters { get; set; } = new List<User>();
+
+        public virtual List<Picture> Pictures { get; set; } = new List<Picture>();
 
         public int GetSubCommentTotal()
         {

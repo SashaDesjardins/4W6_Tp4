@@ -22,7 +22,7 @@ namespace PostHubServer.Services
 
         // Créer un commentaire (possiblement le commentaire principal d'un post, mais pas forcément)
         // Un commentaire parent peut être fourni si le commentaire créé est un sous-commentaire
-        public async Task<Comment?> CreateComment(User user, string text, Comment? parentComment)
+        public async Task<Comment?> CreateComment(User user, string text, Comment? parentComment, List<Picture> pictures)
         {
             if (IsContextNull()) return null;
 
@@ -32,7 +32,8 @@ namespace PostHubServer.Services
                 Text = text,
                 Date = DateTime.UtcNow,
                 User = user, // Auteur
-                ParentComment = parentComment, // null si commentaire principal du post
+                ParentComment = parentComment,// null si commentaire principal du post
+                Pictures = pictures,
             };
 
             _context.Comments.Add(newComment);

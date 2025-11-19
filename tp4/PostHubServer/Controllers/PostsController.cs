@@ -32,13 +32,14 @@ namespace PostHubServer.Controllers
         [Authorize]
         public async Task<ActionResult<PostDisplayDTO>> PostPost(int hubId, PostDTO postDTO)
         {
+            List<Picture> pictures = new List<Picture>();
             User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             if (user == null) return Unauthorized();
 
             Hub? hub = await _hubService.GetHub(hubId);
             if (hub == null) return NotFound();
 
-            Comment? mainComment = await _commentService.CreateComment(user, postDTO.Text, null);
+            Comment? mainComment = await _commentService.CreateComment(user, postDTO.Text, null, pictures);
             if (mainComment == null) return StatusCode(StatusCodes.Status500InternalServerError);
 
             Post? post = await _postService.CreatePost(postDTO.Title, hub, mainComment);
