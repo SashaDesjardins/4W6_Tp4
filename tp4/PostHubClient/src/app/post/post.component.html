@@ -30,7 +30,12 @@
       <div *ngIf="!toggleMainCommentEdit">{{post.mainComment!.text}}</div>
       <textarea id="commentTextEdit" *ngIf="toggleMainCommentEdit" type="text" [(ngModel)]="newMainCommentText"></textarea>
       <div class="commentPictures">
-        <!-- Des images pourraient être affichées ici -->
+        <div class="rows">
+
+        </div>
+        <div *ngFor="let a of post.mainComment!.pictureIds">
+          <img alt="monImage" [src]="'https://localhost:7216/api/Posts/GetPicture/full/' + a">
+        </div>
       </div>
     </div>
   
