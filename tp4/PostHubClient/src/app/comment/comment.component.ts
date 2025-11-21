@@ -84,12 +84,13 @@ export class CommentComponent {
   async editComment(){
 
     if(this.comment == null || this.editedText == undefined) return;
+    
 
     let commentDTO = {
       text : this.editedText
     }
-
-    let newMainComment = await this.commentService.editComment(commentDTO, this.comment.id);
+let formData = new FormData();
+    let newMainComment = await this.commentService.editComment(formData, this.comment.id);
     this.comment = newMainComment;
     this.editedText = this.comment.text;
     this.editMenu = false;
