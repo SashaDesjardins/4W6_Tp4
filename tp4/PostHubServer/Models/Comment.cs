@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace PostHubServer.Models
 {
@@ -21,9 +22,8 @@ namespace PostHubServer.Models
         [InverseProperty("MainComment")]
         
         public virtual Post? MainCommentOf { get; set; }
-
-        [InverseProperty("Comments")]
         [JsonIgnore]
+        [InverseProperty("Comments")]
         public virtual User? User { get; set; }
 
         [InverseProperty("Upvotes")]
@@ -32,7 +32,8 @@ namespace PostHubServer.Models
         [InverseProperty("Downvotes")]
         public virtual List<User>? Downvoters { get; set; } = new List<User>();
 
-        public  virtual List<Picture>? Pictures { get; set; } = new List<Picture>();
+        public virtual List<Picture> Pictures { get; set; } = new List<Picture>();
+
         public int GetSubCommentTotal()
         {
             SubComments ??= new List<Comment>();

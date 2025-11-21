@@ -1,11 +1,16 @@
 ﻿
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using PostHubServer.Models.DTOs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using PostHubServer.Models;
+using PostHubServer.Models.DTOs;
 using PostHubServer.Services;
-using System.Security.Claims;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace PostHubServer.Controllers
 {
@@ -16,28 +21,65 @@ namespace PostHubServer.Controllers
         private readonly UserManager<User> _userManager;
         private readonly PostService _postService;
         private readonly CommentService _commentService;
+        private readonly PictureService _pictureService;
 
-        public CommentsController(UserManager<User> userManager, PostService postService, CommentService commentService)
+        public CommentsController(UserManager<User> userManager, PostService postService, CommentService commentService, PictureService pictureService)
         {
             _userManager = userManager;
             _postService = postService;
             _commentService = commentService;
+            _pictureService = pictureService;
         }
 
         // Créer un nouveau commentaire. (Ne permet pas de créer le commentaire principal d'un post, pour cela,
         // voir l'action PostPost dans PostsController)
         [HttpPost("{parentCommentId}")]
         [Authorize]
-        public async Task<ActionResult<CommentDisplayDTO>> PostComment(int parentCommentId, CommentDTO commentDTO)
+        public async Task<ActionResult<CommentDisplayDTO>> PostComment(int parentCommentId)
         {
-            List<Picture> pictures = new List<Picture>();
+            string? commentText = Request.Form["text"];
+            if (commentText == null) return BadRequest();
             User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             if (user == null) return Unauthorized();
 
             Comment? parentComment = await _commentService.GetComment(parentCommentId);
             if (parentComment == null || parentComment.User == null) return BadRequest();
 
-            Comment? newComment = await _commentService.CreateComment(user, commentDTO.Text, parentComment,pictures);
+            List<Picture> pictureList = new List<Picture>();
+
+            try
+            {
+                IFormCollection formCollection = await Request.ReadFormAsync();
+                int count = 0;
+                IFormFile? file = formCollection.Files.GetFile("image" + count);
+
+                while (file != null)
+                {
+                    Image image = Image.Load(file.OpenReadStream());
+
+                    Picture p = new Picture
+                    {
+                        Id = 0,
+                        FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName),
+                        MimeType = file.ContentType
+                    };
+
+                    image.Save(Directory.GetCurrentDirectory() + "/images/full/" + p.FileName);
+                    image.Mutate(i => i.Resize(
+                        new ResizeOptions() { Mode = ResizeMode.Min, Size = new Size() { Height = 200 } }));
+                    image.Save(Directory.GetCurrentDirectory() + "/images/thumbnail/" + p.FileName);
+                    pictureList.Add(p);
+                    await _pictureService.AddPicture(p);
+                    count++;
+                    file = formCollection.Files.GetFile("image" + count);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            Comment? newComment = await _commentService.CreateComment(user, commentText, parentComment, pictureList);
             if (newComment == null) return StatusCode(StatusCodes.Status500InternalServerError);
 
             bool voteToggleSuccess = await _commentService.UpvoteComment(newComment.Id, user);
@@ -142,6 +184,18 @@ namespace PostHubServer.Controllers
             } while (comment != null && comment.User == null && comment.GetSubCommentTotal() == 0);
 
             return Ok(new { Message = "Commentaire supprimé." });
+        }
+
+        [HttpGet("{size}/{id}")]
+        public async Task<ActionResult<Picture>> GetPicture(string size, int id)
+        {
+            Picture? picture = await _pictureService.GetPicture(id);
+            if (picture == null) return NotFound();
+
+            if (!Regex.Match(size, "full|thumbnail").Success) return BadRequest();
+
+            byte[] bytes = System.IO.File.ReadAllBytes(Directory.GetCurrentDirectory() + "/images/" + size + "/" + picture.FileName);
+            return File(bytes, picture.MimeType);
         }
     }
 }

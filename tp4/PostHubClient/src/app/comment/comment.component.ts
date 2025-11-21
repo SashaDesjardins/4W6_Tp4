@@ -1,5 +1,5 @@
 
-import { Component, Input } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { faDownLong, faEllipsis, faImage, faL, faMessage, faUpLong, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { CommentService } from '../services/comment.service';
 import { Comment } from '../models/comment';
@@ -15,6 +15,8 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
   styleUrl: './comment.component.css'
 })
 export class CommentComponent {
+
+  @ViewChild("photo", {static : false}) myPicture ?: ElementRef;
 
   @Input() comment : Comment | null = null;
 
@@ -57,11 +59,21 @@ export class CommentComponent {
     if(this.comment == null) return;
     if(this.comment.subComments == null) this.comment.subComments = [];
 
-    let commentDTO = {
-      text : this.newComment
-    }
+    if(this.myPicture == null) return;
 
-    this.comment.subComments.push(await this.commentService.postComment(commentDTO, this.comment.id));
+    let file = this.myPicture.nativeElement.files[0];
+    if(file == null) return;
+
+    let formData = new FormData();
+    let count = 0;
+    while(file != null){
+      formData.append("image" + count, file);
+      count++;
+      file = this.myPicture.nativeElement.files[count];
+    }
+    formData.append("text", this.newComment)
+
+    this.comment.subComments.push(await this.commentService.postComment(formData, this.comment.id));
     
     this.replyToggle = false;
     this.repliesToggle = true;

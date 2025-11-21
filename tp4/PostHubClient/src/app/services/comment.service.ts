@@ -22,9 +22,9 @@ export class CommentService {
   }
 
   // Créer un sous-commentaire (donc tous les commentaires qui ne sont pas le commentaire principal d'un post)
-  async postComment(dto : any, parentCommentId : number) : Promise<Comment>{
+  async postComment(formdata : any, parentCommentId : number) : Promise<Comment>{
 
-    let x = await lastValueFrom(this.http.post<any>(domain + "api/Comments/PostComment/" + parentCommentId, dto));
+    let x = await lastValueFrom(this.http.post<any>(domain + "api/Comments/PostComment/" + parentCommentId, formdata));
     console.log(x);
     return x;
 

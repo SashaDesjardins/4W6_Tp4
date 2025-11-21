@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.HttpResults;
 using PostHubServer.Data;
+using PostHubServer.Models;
+
 using PostHubServer.Models;
 namespace PostHubServer.Services
 {
@@ -10,6 +13,14 @@ namespace PostHubServer.Services
         public PictureService(PostHubContext context)
         {
             _context = context;
+        }
+
+        public async Task<Picture> AddPicture(Picture picture)
+        {
+            IsContextNull();
+            _context.Pictures.Add(picture);
+            await _context.SaveChangesAsync();
+            return picture;
         }
 
         public async  Task<Picture?> GetPicture(int id)

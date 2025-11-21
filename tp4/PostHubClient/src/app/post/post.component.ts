@@ -17,6 +17,8 @@ import Glide from '@glidejs/glide';
   styleUrl: './post.component.css'
 })
 export class PostComponent {
+
+  @ViewChild("photo", {static : false}) myPicture ?: ElementRef;
   // Variables pour l'affichage ou associées à des inputs
   post : Post | null = null;
   sorting : string = "popular";
@@ -69,11 +71,21 @@ export class PostComponent {
       return;
     }
 
-    let commentDTO = {
-      text : this.newComment
-    }
+    if(this.myPicture == null) return;
 
-    this.post?.mainComment?.subComments?.push(await this.commentService.postComment(commentDTO, this.post.mainComment.id));
+    let file = this.myPicture.nativeElement.files[0];
+    if(file == null) return;
+
+    let formData = new FormData();
+    let count = 0;
+    while(file != null){
+      formData.append("image" + count, file);
+      count++;
+      file = this.myPicture.nativeElement.files[count];
+    }
+    formData.append("text", this.newComment)
+
+    this.post?.mainComment?.subComments?.push(await this.commentService.postComment(formData, this.post.mainComment.id));
 
     this.newComment = "";
   }
