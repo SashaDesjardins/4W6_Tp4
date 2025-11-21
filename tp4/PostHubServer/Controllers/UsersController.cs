@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using PostHubServer.Models;
 using PostHubServer.Models.DTOs;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using PostHubServer.Services;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace PostHubServer.Controllers
 {
@@ -77,6 +80,35 @@ namespace PostHubServer.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest,
                     new { Message = "Le nom d'utilisateur ou le mot de passe est invalide." });
             }
+        }
+
+        [HttpPut]
+        public async Task<ActionResult> EditUser()
+        {
+            User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (user == null) return Unauthorized();
+            try
+            {
+                IFormCollection formCollection = await Request.ReadFormAsync();
+                IFormFile? file = formCollection.Files.GetFile("image");
+
+                while (file != null)
+                {
+                    Image image = Image.Load(file.OpenReadStream());
+
+                    user.FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    user.MimeType = file.ContentType;
+
+                    image.Save(Directory.GetCurrentDirectory() + "/images/avatar/" + user.FileName);
+                    file = formCollection.Files.GetFile("image");
+                }
+                await _userManager.UpdateAsync(user);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return Ok();
         }
     }
 }

@@ -42,4 +42,10 @@ export class UserService {
     localStorage.setItem("username", x.username);
   }
 
+  async edit(formData : any)
+  {
+    let x = await lastValueFrom(this.http.put<any>(domain + "api/Users/EditUser", formData));
+    console.log(x);
+  }
+
 }

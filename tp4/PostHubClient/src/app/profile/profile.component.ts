@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class ProfileComponent {
   userIsConnected : boolean = false;
-
+  @ViewChild("photo", {static : false}) myPicture ?: ElementRef;
   // Vous êtes obligés d'utiliser ces trois propriétés
   oldPassword : string = "";
   newPassword : string = "";
@@ -25,5 +25,18 @@ export class ProfileComponent {
   ngOnInit() {
     this.userIsConnected = localStorage.getItem("token") != null;
     this.username = localStorage.getItem("username");
+  }
+
+  async edit()
+  {
+    if(this.myPicture == null) return;
+
+    let file = this.myPicture.nativeElement.files[0];
+    if(file == null) return;
+
+    let formData = new FormData();
+    formData.append("image", file);
+
+    await this.userService.edit(formData);
   }
 }
