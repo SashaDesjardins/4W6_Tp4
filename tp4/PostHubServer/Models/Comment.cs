@@ -24,7 +24,6 @@ namespace PostHubServer.Models
         public virtual Post? MainCommentOf { get; set; }
         [JsonIgnore]
         [InverseProperty("Comments")]
-        [JsonIgnore]
         public virtual User? User { get; set; }
 
         [InverseProperty("Upvotes")]
