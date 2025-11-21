@@ -1,11 +1,15 @@
 ﻿
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PostHubServer.Models;
 using PostHubServer.Models.DTOs;
 using PostHubServer.Services;
-using System.Security.Claims;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace PostHubServer.Controllers
 {
@@ -17,38 +21,81 @@ namespace PostHubServer.Controllers
         private readonly HubService _hubService;
         private readonly PostService _postService;
         private readonly CommentService _commentService;
+        private readonly PictureService _pictureService;
 
-        public PostsController(UserManager<User> userManager, HubService hubService, PostService postService, CommentService commentService)
+        public PostsController(UserManager<User> userManager, HubService hubService, PostService postService, CommentService commentService,PictureService pictureService)
         {
             _userManager = userManager;
             _hubService = hubService;
             _postService = postService;
             _commentService = commentService;
+            _pictureService = pictureService;
         }
 
         // Créer un nouveau Post. Cela crée en fait un nouveau commentaire (le commentaire principal du post)
         // et le post lui-même.
         [HttpPost("{hubId}")]
         [Authorize]
-        public async Task<ActionResult<PostDisplayDTO>> PostPost(int hubId, PostDTO postDTO)
+        public async Task<ActionResult> PostPost(int hubId)
         {
-            List<Picture> pictures = new List<Picture>();
+            string? title = Request.Form["postTitle"];
+            string? text= Request.Form["postText"];
+
             User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             if (user == null) return Unauthorized();
 
             Hub? hub = await _hubService.GetHub(hubId);
             if (hub == null) return NotFound();
 
-            Comment? mainComment = await _commentService.CreateComment(user, postDTO.Text, null, pictures);
+            // liste de pictures
+            List<Picture> pictures = new List<Picture>();
+            try
+            {
+                
+                IFormCollection formCollection = await Request.ReadFormAsync();
+                int count = 1;
+                IFormFile? file = formCollection.Files.GetFile("image" + count);
+                while (file != null)
+                {
+                    Image image = Image.Load(file.OpenReadStream());
+
+                    Picture p = new Picture
+                    {
+                        Id = 0,
+                        FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName),
+                        MimeType = file.ContentType
+                    };
+
+                    image.Save(Directory.GetCurrentDirectory() + "/images/full/" + p.FileName);
+                    image.Mutate(i => i.Resize(
+                        new ResizeOptions() { Mode = ResizeMode.Min, Size = new Size() { Height = 200 } }));
+                    image.Save(Directory.GetCurrentDirectory() + "/images/thumbnail/" + p.FileName);
+
+                    pictures.Add(p);
+                    count++;
+                    file = formCollection.Files.GetFile("image" + count);
+                }
+                
+
+
+
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            Comment? mainComment = await _commentService.CreateComment(user, text, null,pictures);
             if (mainComment == null) return StatusCode(StatusCodes.Status500InternalServerError);
 
-            Post? post = await _postService.CreatePost(postDTO.Title, hub, mainComment);
+            Post? post = await _postService.CreatePost(title, hub, mainComment);
             if (post == null) return StatusCode(StatusCodes.Status500InternalServerError);
 
             bool voteToggleSuccess = await _commentService.UpvoteComment(mainComment.Id, user);
             if (!voteToggleSuccess) return StatusCode(StatusCodes.Status500InternalServerError);
-
-            return Ok(new PostDisplayDTO(post, true, user));
+            
+            Post newPost = await _postService.CreatePost(title, hub, mainComment);
+            return Ok(newPost);
         }
 
         /// <summary>
@@ -154,6 +201,21 @@ namespace PostHubServer.Controllers
             return Ok(postDisplayDTO);
         }
 
+        [HttpGet("{size}/{id}")]
+        public async Task<ActionResult<Picture>> GetPicture(string size, int id)
+        {
+            Picture? picture = await _pictureService.GetPicture(id);
+            if (picture == null)
+            {
+                return NotFound();
+            }
+            // Si la size fournit ne correspond pas à "big" OU "smol", erreur.
+            if (!Regex.Match(size, "full|thumbnail").Success) return BadRequest(new { Message = "La taille demandée n'existe pas." });
+
+            // Récupération du fichier sur le disque
+            byte[] bytes = System.IO.File.ReadAllBytes(Directory.GetCurrentDirectory() + "/images/" + size + "/" + picture.FileName);
+            return File(bytes, picture.MimeType);
+        }
         // Obtenir les Posts dont le commentaire principal a le plus d'upvotes
         private static IEnumerable<Post> GetPopularPosts(Hub hub, int qty)
         {
@@ -165,5 +227,7 @@ namespace PostHubServer.Controllers
         {
             return hub.Posts!.OrderByDescending(p => p.MainComment?.Date).Take(qty);
         }
+
+
     }
 }

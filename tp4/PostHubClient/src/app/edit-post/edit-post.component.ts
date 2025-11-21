@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Post } from '../models/post';
 import { HubService } from '../services/hub.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -18,7 +18,7 @@ export class EditPostComponent {
   hub : Hub | null = null;
   postTitle : string = "";
   postText : string = "";
-
+  @ViewChild("myFileInput",{static : false}) pictureInput ?: ElementRef;
   constructor(public hubService : HubService, public route : ActivatedRoute, public postService : PostService, public router : Router) { }
 
   async ngOnInit() {
@@ -31,18 +31,25 @@ export class EditPostComponent {
 
   // Créer un nouveau post (et son commentaire principal)
   async createPost(){
+    let formData=new FormData()
+    if(this.pictureInput!=undefined){
+      
+      let i =1
+      for(let f of this.pictureInput.nativeElement.files){
+        formData.append("image"+i,f,f.name)
+        i++
+      }
+    }
     if(this.postTitle == "" || this.postText == ""){
       alert("Remplis mieux le titre et le texte niochon");
       return;
     }
     if(this.hub == null) return;
 
-    let postDTO = {
-      title : this.postTitle,
-      text : this.postText
-    };
-
-    let newPost : Post = await this.postService.postPost(this.hub.id, postDTO);
+    formData.append("postText",this.postText)
+    formData.append("postTitle",this.postTitle)
+    console.log(formData)
+    let newPost : Post = await this.postService.postPost(this.hub.id, formData);
 
     // On se déplace vers le nouveau post une fois qu'il est créé
     this.router.navigate(["/post", newPost.id]);

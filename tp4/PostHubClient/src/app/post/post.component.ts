@@ -46,9 +46,10 @@ export class PostComponent {
 
     if(postId != null){
       this.post = await this.postService.getPost(+postId, this.sorting);
+      console.log(this.post)
       this.newMainCommentText = this.post.mainComment == null ? "" : this.post.mainComment.text;
     }
-
+    
     
     this.isAuthor = localStorage.getItem("username") == this.post?.mainComment?.username;
   }

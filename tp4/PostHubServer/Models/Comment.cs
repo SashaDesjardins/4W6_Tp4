@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace PostHubServer.Models
 {
@@ -19,9 +20,11 @@ namespace PostHubServer.Models
 
         // Si ce commentaire est le commentaire principal du post, référence vers le post en question
         [InverseProperty("MainComment")]
+        
         public virtual Post? MainCommentOf { get; set; }
         [JsonIgnore]
         [InverseProperty("Comments")]
+        [JsonIgnore]
         public virtual User? User { get; set; }
 
         [InverseProperty("Upvotes")]
