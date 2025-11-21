@@ -1,14 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { faDownLong, faEllipsis, faImage, faMessage, faUpLong, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { Post } from '../models/post';
 import { PostService } from '../services/post.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommentService } from '../services/comment.service';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, getLocaleDirection } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CommentComponent } from '../comment/comment.component';
-
+import Glide from '@glidejs/glide';
 @Component({
   selector: 'app-post',
   standalone: true,
@@ -22,13 +22,13 @@ export class PostComponent {
   sorting : string = "popular";
   newComment : string = "";
   newMainCommentText : string = "";
-
+  imageCount: number=0;
   // Booléens sus pour cacher / afficher des boutons
   isAuthor : boolean = false;
   editMenu : boolean = false;
   displayInputFile : boolean = false;
   toggleMainCommentEdit : boolean = false;
-
+  @ViewChildren('glideitems') glideitems: QueryList<any>=new QueryList();
   // Icônes Font Awesome
   faEllipsis = faEllipsis;
   faUpLong = faUpLong;
@@ -46,6 +46,11 @@ export class PostComponent {
       this.post = await this.postService.getPost(+postId, this.sorting);
       console.log(this.post)
       this.newMainCommentText = this.post.mainComment == null ? "" : this.post.mainComment.text;
+      if(this.post.mainComment?.pictureIds!=null)
+      this.imageCount=this.post.mainComment?.pictureIds?.length
+      
+     
+      
     }
     
     
@@ -125,5 +130,21 @@ export class PostComponent {
     if(this.post == null || this.post.mainComment == null) return;
     await this.commentService.deleteComment(this.post.mainComment.id);
     this.router.navigate(["/"]);
+  }
+
+  ngAfterViewInit(){
+    this.glideitems.changes.subscribe(e=>{this.initGlide();});
+    if(this.glideitems.length>0){
+      this.initGlide();
+    }
+  }
+
+  initGlide(){
+    var glide = new Glide('.glide',{
+      type: 'carousel',
+      focusAt:'center',
+      perView: Math.ceil(window.innerWidth/400)
+    });
+    glide.mount();
   }
 }
