@@ -32,6 +32,13 @@ namespace PostHubServer.Services
             }
             return picture;
         }
+
+        public async Task DeletePicture(Picture picture)
+        {
+            _context.Pictures.Remove(picture);
+           await _context.SaveChangesAsync();
+           
+        }
         private bool IsContextNull() => _context == null || _context.Pictures == null;
     }
 }

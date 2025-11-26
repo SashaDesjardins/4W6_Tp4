@@ -180,7 +180,11 @@ namespace PostHubServer.Controllers
 
             Comment? comment = await _commentService.GetComment(commentId);
             if (comment == null) return NotFound();
-
+            for (int x=comment.Pictures.Count-1;x>=0;x--)
+            {
+                await _pictureService.DeletePicture(comment.Pictures[x]);
+            }
+            
             if (user == null || comment.User != user) return Unauthorized();
 
             // Cette boucle permet non-seulement de supprimer le commentaire lui-même, mais s'il possède
@@ -189,12 +193,13 @@ namespace PostHubServer.Controllers
             do
             {
                 comment.SubComments ??= new List<Comment>();
-
+                
                 Comment? parentComment = comment.ParentComment;
 
                 // C'est un commentaire principal sans sous-commentaire :
                 if (comment.MainCommentOf != null && comment.GetSubCommentTotal() == 0)
                 {
+                    
                     Post? deletedPost = await _postService.DeletePost(comment.MainCommentOf);
                     if (deletedPost == null) return StatusCode(StatusCodes.Status500InternalServerError);
                 }
@@ -212,7 +217,7 @@ namespace PostHubServer.Controllers
                     if (deletedComment == null) return StatusCode(StatusCodes.Status500InternalServerError);
                     break;
                 }
-
+                
                 comment = parentComment;
 
             } while (comment != null && comment.User == null && comment.GetSubCommentTotal() == 0);
