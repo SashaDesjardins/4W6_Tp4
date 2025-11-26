@@ -138,7 +138,7 @@ export class PostComponent {
         i++
       }
     }
-    formData.append("comment",this.newMainCommentText)
+    formData.append("editedText",this.newMainCommentText)
     console.log(this.newMainCommentText)
     console.log(formData)
     /*let commentDTO = {

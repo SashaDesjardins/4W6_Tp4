@@ -20,7 +20,9 @@
       <div class="commentPictures">
         <!-- Des images pourraient être affichées ici... -->
          <div *ngFor="let p of comment.pictureIds" class="pictureFrame">
-          <img [src]="'https://localhost:7216/api/Comments/GetPicture/thumbnail/' + p" alt="Picture">
+          <a [href]="'https://localhost:7216/api/Comments/GetPicture/full/' + p" target="blank">
+            <img [src]="'https://localhost:7216/api/Comments/GetPicture/thumbnail/' + p" alt="Picture">
+          </a>
          </div>
       </div>
     </div>
