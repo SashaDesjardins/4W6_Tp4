@@ -94,7 +94,7 @@ namespace PostHubServer.Controllers
         [Authorize]
         public async Task<ActionResult<CommentDisplayDTO>> PutComment(int commentId)
         {
-            string newText= Request.Form["comment"];
+            string newText= Request.Form["editedText"];
             List<Picture> pictureList = new List<Picture>();
             try
             {
