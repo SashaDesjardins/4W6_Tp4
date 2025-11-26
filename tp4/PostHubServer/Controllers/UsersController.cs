@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -91,17 +92,11 @@ namespace PostHubServer.Controllers
             {
                 IFormCollection formCollection = await Request.ReadFormAsync();
                 IFormFile? file = formCollection.Files.GetFile("image");
+                Image image = Image.Load(file.OpenReadStream());
 
-                while (file != null)
-                {
-                    Image image = Image.Load(file.OpenReadStream());
-
-                    user.FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    user.MimeType = file.ContentType;
-
-                    image.Save(Directory.GetCurrentDirectory() + "/images/avatar/" + user.FileName);
-                    file = formCollection.Files.GetFile("image");
-                }
+                user.FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                user.MimeType = file.ContentType;
+                image.Save(Directory.GetCurrentDirectory() + "/images/avatar/" + user.FileName);
                 await _userManager.UpdateAsync(user);
             }
             catch (Exception)
@@ -109,6 +104,16 @@ namespace PostHubServer.Controllers
                 throw;
             }
             return Ok();
+        }
+
+        [HttpGet("{pseudo}")]
+        public async Task<ActionResult<Picture>> GetPictureAvatar(string pseudo)
+        {
+            User? user = await _userManager.FindByNameAsync(pseudo);
+            if (user == null) return Unauthorized();
+
+            byte[] bytes = System.IO.File.ReadAllBytes(Directory.GetCurrentDirectory() + "/images/avatar/" + user.FileName);
+            return File(bytes, user.MimeType);
         }
     }
 }

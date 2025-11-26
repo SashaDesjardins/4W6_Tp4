@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using PostHubServer.Data;
-using PostHubServer.Models;
-
 using PostHubServer.Models;
 namespace PostHubServer.Services
 {
@@ -25,6 +25,8 @@ namespace PostHubServer.Services
 
         public async  Task<Picture?> GetPicture(int id)
         {
+            IsContextNull();
+
             Picture? picture = await _context.Pictures.FindAsync(id);
             if (picture==null)
             {

@@ -11,7 +11,8 @@
       <input type="password" name="oldPassword" id="oldPassword" placeholder="Mot de passe actuel" [(ngModel)]="oldPassword">
       <input type="password" name="newPassword" id="newPassword" placeholder="Nouveau mot de passe" [(ngModel)]="newPassword">
       <input type="password" name="newPasswordConfirm" id="newPasswordConfirm" placeholder="Confirmer le nouveau mot de passe" [(ngModel)]="newPasswordConfirm">
-      
+      <div>Avatar</div>
+      <img [src]="'https://localhost:7216/api/Users/GetPictureAvatar/'+ username"  alt="Avatar">
       <input #photo type="file" accept="images/*" name="Avatar">
       <button (click)="edit()">Modifier</button>
     </div>
