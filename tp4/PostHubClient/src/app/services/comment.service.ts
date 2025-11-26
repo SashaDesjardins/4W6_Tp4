@@ -13,9 +13,9 @@ export class CommentService {
   constructor(public http : HttpClient) { }
 
   // Modifier un commentaire (que ce soit le commentaire principal d'un post ou un sous-commentaire)
-  async editComment(dto : any, commentId : number) : Promise<Comment>{
+  async editComment(FormData : FormData, commentId : number) : Promise<Comment>{
 
-    let x = await lastValueFrom(this.http.put<any>(domain + "api/Comments/PutComment/" + commentId, dto));
+    let x = await lastValueFrom(this.http.put<any>(domain + "api/Comments/PutComment/" + commentId, FormData));
     console.log(x);
     return x;
 

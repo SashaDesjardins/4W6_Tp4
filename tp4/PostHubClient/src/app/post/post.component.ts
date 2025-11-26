@@ -31,6 +31,7 @@ export class PostComponent {
   displayInputFile : boolean = false;
   toggleMainCommentEdit : boolean = false;
   @ViewChildren('glideitems') glideitems: QueryList<any>=new QueryList();
+  @ViewChild("myFileInput",{static : false}) pictureInput ?: ElementRef;
   // Icônes Font Awesome
   faEllipsis = faEllipsis;
   faUpLong = faUpLong;
@@ -127,12 +128,24 @@ export class PostComponent {
   // Modifier le commentaire principal du post
   async editMainComment(){
     if(this.post == null || this.post.mainComment == null) return;
-
-    let commentDTO = {
-      text : this.newMainCommentText
+    
+    var formData= new FormData();
+    if(this.pictureInput!=undefined){
+      
+      let i =0
+      for(let f of this.pictureInput.nativeElement.files){
+        formData.append("image"+i,f,f.name)
+        i++
+      }
     }
+    formData.append("comment",this.newMainCommentText)
+    console.log(this.newMainCommentText)
+    console.log(formData)
+    /*let commentDTO = {
+      text : this.newMainCommentText
+    }*/
 
-    let newMainComment = await this.commentService.editComment(commentDTO, this.post?.mainComment.id);
+    let newMainComment = await this.commentService.editComment(formData, this.post?.mainComment.id);
     this.post.mainComment = newMainComment;
     this.toggleMainCommentEdit = false;
   }

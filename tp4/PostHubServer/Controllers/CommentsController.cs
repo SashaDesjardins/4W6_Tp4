@@ -38,6 +38,7 @@ namespace PostHubServer.Controllers
         public async Task<ActionResult<CommentDisplayDTO>> PostComment(int parentCommentId)
         {
             string? commentText = Request.Form["text"];
+            
             if (commentText == null) return BadRequest();
             User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             if (user == null) return Unauthorized();
@@ -45,7 +46,7 @@ namespace PostHubServer.Controllers
             Comment? parentComment = await _commentService.GetComment(parentCommentId);
             if (parentComment == null || parentComment.User == null) return BadRequest();
 
-            List<Picture> pictureList = new List<Picture>();
+            List<Picture>? pictureList = new List<Picture>();
 
             try
             {
@@ -91,8 +92,41 @@ namespace PostHubServer.Controllers
         // Modifier le texte d'un commentaire
         [HttpPut("{commentId}")]
         [Authorize]
-        public async Task<ActionResult<CommentDisplayDTO>> PutComment(int commentId, CommentDTO commentDTO)
+        public async Task<ActionResult<CommentDisplayDTO>> PutComment(int commentId)
         {
+            string newText= Request.Form["editedText"];
+            List<Picture> pictureList = new List<Picture>();
+            try
+            {
+                IFormCollection formCollection = await Request.ReadFormAsync();
+                int count = 0;
+                IFormFile? file = formCollection.Files.GetFile("image" + count);
+
+                while (file != null)
+                {
+                    Image image = Image.Load(file.OpenReadStream());
+
+                    Picture p = new Picture
+                    {
+                        Id = 0,
+                        FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName),
+                        MimeType = file.ContentType
+                    };
+
+                    image.Save(Directory.GetCurrentDirectory() + "/images/full/" + p.FileName);
+                    image.Mutate(i => i.Resize(
+                        new ResizeOptions() { Mode = ResizeMode.Min, Size = new Size() { Height = 200 } }));
+                    image.Save(Directory.GetCurrentDirectory() + "/images/thumbnail/" + p.FileName);
+                    pictureList.Add(p);
+                    await _pictureService.AddPicture(p);
+                    count++;
+                    file = formCollection.Files.GetFile("image" + count);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
             User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             Comment? comment = await _commentService.GetComment(commentId);
@@ -100,7 +134,7 @@ namespace PostHubServer.Controllers
 
             if (user == null || comment.User != user) return Unauthorized();
 
-            Comment? editedComment = await _commentService.EditComment(comment, commentDTO.Text);
+            Comment? editedComment = await _commentService.EditComment(comment, newText,pictureList);
             if (editedComment == null) return StatusCode(StatusCodes.Status500InternalServerError);
 
             return Ok(new CommentDisplayDTO(editedComment, true, user));
@@ -146,7 +180,11 @@ namespace PostHubServer.Controllers
 
             Comment? comment = await _commentService.GetComment(commentId);
             if (comment == null) return NotFound();
-
+            for (int x=comment.Pictures.Count-1;x>=0;x--)
+            {
+                await _pictureService.DeletePicture(comment.Pictures[x]);
+            }
+            
             if (user == null || comment.User != user) return Unauthorized();
 
             // Cette boucle permet non-seulement de supprimer le commentaire lui-même, mais s'il possède
@@ -155,12 +193,13 @@ namespace PostHubServer.Controllers
             do
             {
                 comment.SubComments ??= new List<Comment>();
-
+                
                 Comment? parentComment = comment.ParentComment;
 
                 // C'est un commentaire principal sans sous-commentaire :
                 if (comment.MainCommentOf != null && comment.GetSubCommentTotal() == 0)
                 {
+                    
                     Post? deletedPost = await _postService.DeletePost(comment.MainCommentOf);
                     if (deletedPost == null) return StatusCode(StatusCodes.Status500InternalServerError);
                 }
@@ -178,7 +217,7 @@ namespace PostHubServer.Controllers
                     if (deletedComment == null) return StatusCode(StatusCodes.Status500InternalServerError);
                     break;
                 }
-
+                
                 comment = parentComment;
 
             } while (comment != null && comment.User == null && comment.GetSubCommentTotal() == 0);

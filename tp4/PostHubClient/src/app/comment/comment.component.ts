@@ -6,6 +6,7 @@ import { Comment } from '../models/comment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { text } from '@fortawesome/fontawesome-svg-core';
 
 @Component({
   selector: 'app-comment',
@@ -84,12 +85,19 @@ export class CommentComponent {
   async editComment(){
 
     if(this.comment == null || this.editedText == undefined) return;
+    let file = this.myPicture?.nativeElement.files[0]
 
     let commentDTO = {
       text : this.editedText
     }
-
-    let newMainComment = await this.commentService.editComment(commentDTO, this.comment.id);
+      let formData = new FormData();
+      let count =0
+      for(let f of this.myPicture?.nativeElement.files){
+        formData.append("image"+count,f,f.name)
+        count++
+      }
+      formData.append("editedText",this.editedText)
+    let newMainComment = await this.commentService.editComment(formData, this.comment.id);
     this.comment = newMainComment;
     this.editedText = this.comment.text;
     this.editMenu = false;

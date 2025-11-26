@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PostHubServer.Data;
 using PostHubServer.Models;
+using Microsoft.AspNetCore.Mvc;
 namespace PostHubServer.Services
 {
     public class PictureService
@@ -33,6 +34,17 @@ namespace PostHubServer.Services
                 return null;    
             }
             return picture;
+        }
+
+        public async Task DeletePicture(Picture picture)
+        {
+            System.IO.File.Delete(Directory.GetCurrentDirectory() + "/images/full/" + picture.FileName);
+            System.IO.File.Delete(Directory.GetCurrentDirectory() + "/images/thumbnail/" + picture.FileName);
+
+            _context.Pictures.Remove(picture);
+           await _context.SaveChangesAsync();
+             
+           
         }
         private bool IsContextNull() => _context == null || _context.Pictures == null;
     }
