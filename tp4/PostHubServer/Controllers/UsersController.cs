@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -76,7 +77,8 @@ namespace PostHubServer.Controllers
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
                     validTo = token.ValidTo,
-                    username = user.UserName // Ceci sert déjà à afficher / cacher certains boutons côté Angular
+                    username = user.UserName,
+                    roles = roles// Ceci sert déjà à afficher / cacher certains boutons côté Angular
                 });
             }
             else
@@ -123,5 +125,16 @@ namespace PostHubServer.Controllers
             byte[] bytes = System.IO.File.ReadAllBytes(Directory.GetCurrentDirectory() + "/images/avatar/" + user.FileName);
             return File(bytes, user.MimeType);
         }
+
+        [HttpPut]
+        [Authorize(Roles ="admin")]
+        public async Task<ActionResult> ChangeRole(string username)
+        {
+            User? user= await _userManager.FindByNameAsync(username);
+            if(user == null) return Unauthorized();
+            await _userManager.AddToRoleAsync(user, "moderator");
+            return Ok("L'utilisateur est maitenant un modérateur");
+        }
+
     }
 }
