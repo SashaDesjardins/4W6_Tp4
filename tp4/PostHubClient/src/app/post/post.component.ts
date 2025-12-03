@@ -172,4 +172,9 @@ export class PostComponent {
     });
     glide.mount();
   }
+
+  async deletePicture(id : number){
+    await this.commentService.deletePicture(id);
+    this.post?.mainComment?.pictureIds?.splice(this.post?.mainComment?.pictureIds.indexOf(id), 1)
+  }
 }

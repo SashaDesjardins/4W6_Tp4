@@ -20,11 +20,19 @@ export class ProfileComponent {
 
   username : string | null = null;
 
+  imageSrc = "/assets/images/default.png";
+
   constructor(public userService : UserService) { }
 
   ngOnInit() {
     this.userIsConnected = localStorage.getItem("token") != null;
     this.username = localStorage.getItem("username");
+  }
+
+  imgFileSelected(event: any) {
+    if (event.target.files && event.target.files[0]) {
+      this.imageSrc = URL.createObjectURL(event.target.files[0]);
+    }
   }
 
   async edit()

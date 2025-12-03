@@ -236,5 +236,19 @@ namespace PostHubServer.Controllers
             byte[] bytes = System.IO.File.ReadAllBytes(Directory.GetCurrentDirectory() + "/images/" + size + "/" + picture.FileName);
             return File(bytes, picture.MimeType);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePicture(int id)
+        {
+            var picture = await _pictureService.GetPicture(id);
+            if (picture == null)
+            {
+                return NotFound();
+            }
+
+            await _pictureService.DeletePicture(picture);
+
+            return Ok();
+        }
     }
 }

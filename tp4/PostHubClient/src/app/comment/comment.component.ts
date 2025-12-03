@@ -163,4 +163,9 @@ export class CommentComponent {
     }
   }
 
+  async deletePicture(id : number){
+    await this.commentService.deletePicture(id);
+    this.comment?.pictureIds?.splice(this.comment.pictureIds.indexOf(id), 1)
+  }
+
 }
