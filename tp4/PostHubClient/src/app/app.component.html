@@ -25,7 +25,7 @@
 
       <div [routerLink]="['/postList', 'discover']">Découvrir</div>
 
-      <div *ngIf="userService.rolesSignal().includes('admin')">Administration</div>
+      <div [routerLink]="['admin']" *ngIf="userService.rolesSignal().includes('admin')">Administration</div>
 
       <div id="hubs" (click)="toggleHubs()">Vos hubs <fa-icon [icon]="faChevronDown"></fa-icon>
         <div *ngIf="hubsToggled">

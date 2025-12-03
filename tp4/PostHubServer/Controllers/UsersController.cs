@@ -126,14 +126,14 @@ namespace PostHubServer.Controllers
             return File(bytes, user.MimeType);
         }
 
-        [HttpPut]
+        [HttpPut("{username}")]
         [Authorize(Roles ="admin")]
         public async Task<ActionResult> ChangeRole(string username)
         {
             User? user= await _userManager.FindByNameAsync(username);
             if(user == null) return Unauthorized();
             await _userManager.AddToRoleAsync(user, "moderator");
-            return Ok("L'utilisateur est maitenant un modérateur");
+            return Ok(new {Message=user.UserName="est maitenant modérateur"});
         }
 
     }

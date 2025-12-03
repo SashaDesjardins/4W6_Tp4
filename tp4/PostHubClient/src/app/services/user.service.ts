@@ -53,7 +53,8 @@ export class UserService {
   }
 
   async makeMod(username:string){
-    let x =await lastValueFrom(this.http.put<any>(dom+"api/Users/ChangeRole",username))
+    let x =await lastValueFrom(this.http.put<any>(domain+"api/Users/ChangeRole/" + username, null))
+    console.log(x)
   }
 
 }

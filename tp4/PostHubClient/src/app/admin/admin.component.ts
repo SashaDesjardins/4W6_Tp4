@@ -15,7 +15,8 @@ export class AdminComponent {
   constructor(public userService : UserService, public hubService : HubService, public router : Router) { }
 
   makeMod(){
-    let x= this.userService
+    let x= this.userService.makeMod(this.modName)
+    console.log(x)
   }
 
 }
