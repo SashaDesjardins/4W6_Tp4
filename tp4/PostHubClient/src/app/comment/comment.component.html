@@ -20,6 +20,7 @@
       <div class="commentPictures">
         <!-- Des images pourraient être affichées ici... -->
          <div *ngFor="let p of comment.pictureIds" class="pictureFrame">
+          <div class="pictureDelete" *ngIf="isAuthor" (click)="deletePicture(p)">X</div>
           <a [href]="'https://localhost:7216/api/Comments/GetPicture/full/' + p" target="blank">
             <img [src]="'https://localhost:7216/api/Comments/GetPicture/thumbnail/' + p" alt="Picture">
           </a>

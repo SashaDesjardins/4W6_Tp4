@@ -36,6 +36,7 @@
           <div class="glide__track" data-glide-el="track">
             <ul class="glide__slides">
               <li class="glide__slide" *ngFor="let a of post.mainComment!.pictureIds!" #glideitems class="pictureFrame">
+                <div class="pictureDelete" *ngIf="isAuthor" (click)="deletePicture(a)">X</div>
                 <a [href]="'https://localhost:7216/api/Posts/GetPicture/full/' + a" target="blank">
                   <img [src]="'https://localhost:7216/api/Posts/GetPicture/thumbnail/' + a"
                   style="object-fit: cover;width: 100%; height: 100%;">
@@ -64,6 +65,7 @@
       </div>
       <div *ngIf="post.mainComment!.pictureIds!.length <= 4">
         <div class="pictureFrame" *ngFor="let a of post.mainComment!.pictureIds">
+          <div class="pictureDelete" *ngIf="isAuthor" (click)="deletePicture(a)">X</div>
           <a [href]="'https://localhost:7216/api/Posts/GetPicture/full/' + a" target="blank">
             <img alt="monImage" [src]="'https://localhost:7216/api/Posts/GetPicture/thumbnail/' + a">
           </a>
