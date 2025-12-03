@@ -250,5 +250,18 @@ namespace PostHubServer.Controllers
 
             return Ok();
         }
+
+        [HttpPut("{commentId}")]
+        [Authorize]
+        public async Task<ActionResult> Signaler(int commentId)
+        {
+            User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (user == null) return BadRequest();
+
+            bool report = await _commentService.Signaler(commentId, user);
+            if (!report) return StatusCode(StatusCodes.Status500InternalServerError);
+
+            return Ok(new { Message = "Report complété." });
+        }
     }
 }

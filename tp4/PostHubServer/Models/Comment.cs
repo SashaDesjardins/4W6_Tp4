@@ -33,6 +33,8 @@ namespace PostHubServer.Models
         public virtual List<User>? Downvoters { get; set; } = new List<User>();
 
         public virtual List<Picture> Pictures { get; set; } = new List<Picture>();
+        [InverseProperty("CommentsSignaler")]
+        public virtual List<User> Reporters { get; set; } = new List<User>();
 
         public int GetSubCommentTotal()
         {

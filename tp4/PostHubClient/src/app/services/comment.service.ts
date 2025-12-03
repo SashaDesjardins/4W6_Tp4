@@ -55,4 +55,9 @@ export class CommentService {
     console.log(x);
   }
 
+  async signaler(id : number){
+    let x = await lastValueFrom(this.http.put<any>(domain + "api/Comments/Signaler/" + id, null));
+    console.log(x);
+  }
+
 }

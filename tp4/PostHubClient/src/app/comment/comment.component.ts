@@ -168,4 +168,8 @@ export class CommentComponent {
     this.comment?.pictureIds?.splice(this.comment.pictureIds.indexOf(id), 1)
   }
 
+  async report(id : number){
+    await this.commentService.signaler(id)
+  }
+
 }

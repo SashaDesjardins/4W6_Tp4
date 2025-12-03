@@ -16,6 +16,10 @@ namespace PostHubServer.Models
         [InverseProperty("Downvoters")]
         public virtual List<Comment>? Downvotes { get; set; }
 
+        [InverseProperty("Reporters")]
+        public virtual List<Comment>? CommentsSignaler { get; set; }
+
+
         // Avatar
         public string? FileName { get; set; }
         public string? MimeType { get; set; }
