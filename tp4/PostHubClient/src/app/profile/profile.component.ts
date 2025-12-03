@@ -30,12 +30,15 @@ export class ProfileComponent {
   async edit()
   {
     if(this.myPicture == null) return;
-
+    
     let file = this.myPicture.nativeElement.files[0];
     if(file == null) return;
 
     let formData = new FormData();
+
     formData.append("image", file);
+    formData.append("old",this.oldPassword);
+    formData.append("new",this.newPassword);
 
     await this.userService.edit(formData);
   }

@@ -51,6 +51,9 @@ namespace PostHubServer.Controllers
         public async Task<ActionResult> Login(LoginDTO login)
         {
             User? user = await _userManager.FindByNameAsync(login.Username);
+            if (user == null) {
+                user = await _userManager.FindByEmailAsync(login.Username);
+            }
             if (user != null && await _userManager.CheckPasswordAsync(user, login.Password))
             {
                 IList<string> roles = await _userManager.GetRolesAsync(user);
@@ -86,6 +89,8 @@ namespace PostHubServer.Controllers
         [HttpPut]
         public async Task<ActionResult> EditUser()
         {
+            string? oldPassword = Request.Form["old"];
+            string? newPassword = Request.Form["new"];
             User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             if (user == null) return Unauthorized();
             try
@@ -93,7 +98,10 @@ namespace PostHubServer.Controllers
                 IFormCollection formCollection = await Request.ReadFormAsync();
                 IFormFile? file = formCollection.Files.GetFile("image");
                 Image image = Image.Load(file.OpenReadStream());
-
+                if (oldPassword != null && newPassword != null) {
+                    await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+                }
+                
                 user.FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                 user.MimeType = file.ContentType;
                 image.Save(Directory.GetCurrentDirectory() + "/images/avatar/" + user.FileName);
