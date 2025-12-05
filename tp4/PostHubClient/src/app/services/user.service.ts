@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
+import { dom } from '@fortawesome/fontawesome-svg-core';
 import { lastValueFrom } from 'rxjs';
 
 const domain = "https://localhost:7216/";
@@ -10,7 +11,7 @@ const domain = "https://localhost:7216/";
 export class UserService {
 
   constructor(public http : HttpClient) { }
-
+  rolesSignal : WritableSignal<string[]> = signal([]);
   // S'inscrire
   async register(username : string, email : string, password : string, passwordConfirm : string) : Promise<void>{
 
@@ -40,12 +41,20 @@ export class UserService {
     // Cela pourrait vous aider pour la partie admin / modérateur
     localStorage.setItem("token", x.token);
     localStorage.setItem("username", x.username);
+    localStorage.setItem("roles",x.roles)
+    this.rolesSignal.set(x.roles)
+    
   }
 
   async edit(formData : any)
   {
     let x = await lastValueFrom(this.http.put<any>(domain + "api/Users/EditUser", formData));
     console.log(x);
+  }
+
+  async makeMod(username:string){
+    let x =await lastValueFrom(this.http.put<any>(domain+"api/Users/ChangeRole/" + username, null))
+    console.log(x)
   }
 
 }

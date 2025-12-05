@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, Signal, signal, ViewChild, WritableSignal } from '@angular/core';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { HubService } from './services/hub.service';
 import { Hub } from './models/hub';
@@ -6,6 +6,7 @@ import { faChevronDown, faChevronUp, faMagnifyingGlass, faRightFromBracket, faRi
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { UserService } from './services/user.service';
 
 
 @Component({
@@ -23,13 +24,17 @@ export class AppComponent {
   faRightFromBracket = faRightFromBracket;
   faChevronDown = faChevronDown;
   
+  
   searchText : string = "";
 
   hubsToggled : boolean = false;
   hubList : Hub[] = [];
-
-  constructor(public hubService : HubService){}
-
+  
+  constructor(public hubService : HubService,public userService:UserService){}
+   async ngOnInit(){
+    
+    
+  }
   async toggleHubs(){
     this.faChevronDown = this.faChevronDown == faChevronDown ? faChevronUp : faChevronDown;
     this.hubsToggled = !this.hubsToggled;

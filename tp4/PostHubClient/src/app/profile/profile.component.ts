@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, signal, ViewChild, WritableSignal } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +17,7 @@ export class ProfileComponent {
   oldPassword : string = "";
   newPassword : string = "";
   newPasswordConfirm : string = "";
-
+  
   username : string | null = null;
 
   imageSrc = "/assets/images/default.png";
@@ -27,6 +27,7 @@ export class ProfileComponent {
   ngOnInit() {
     this.userIsConnected = localStorage.getItem("token") != null;
     this.username = localStorage.getItem("username");
+    
   }
 
   imgFileSelected(event: any) {
