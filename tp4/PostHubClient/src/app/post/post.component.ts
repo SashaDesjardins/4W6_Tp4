@@ -18,20 +18,20 @@ import Glide from '@glidejs/glide';
 })
 export class PostComponent {
 
-  @ViewChild("photo", {static : false}) myPicture ?: ElementRef;
+  @ViewChild("photo", { static: false }) myPicture?: ElementRef;
   // Variables pour l'affichage ou associées à des inputs
-  post : Post | null = null;
-  sorting : string = "popular";
-  newComment : string = "";
-  newMainCommentText : string = "";
-  imageCount: number=0;
+  post: Post | null = null;
+  sorting: string = "popular";
+  newComment: string = "";
+  newMainCommentText: string = "";
+  imageCount: number = 0;
   // Booléens sus pour cacher / afficher des boutons
-  isAuthor : boolean = false;
-  editMenu : boolean = false;
-  displayInputFile : boolean = false;
-  toggleMainCommentEdit : boolean = false;
-  @ViewChildren('glideitems') glideitems: QueryList<any>=new QueryList();
-  @ViewChild("myFileInput",{static : false}) pictureInput ?: ElementRef;
+  isAuthor: boolean = false;
+  editMenu: boolean = false;
+  displayInputFile: boolean = false;
+  toggleMainCommentEdit: boolean = false;
+  @ViewChildren('glideitems') glideitems: QueryList<any> = new QueryList();
+  @ViewChild("myFileInput", { static: false }) pictureInput?: ElementRef;
   // Icônes Font Awesome
   faEllipsis = faEllipsis;
   faUpLong = faUpLong;
@@ -40,50 +40,54 @@ export class PostComponent {
   faImage = faImage;
   faXmark = faXmark;
 
-  constructor(public postService : PostService, public route : ActivatedRoute, public router : Router, public commentService : CommentService) { }
+  constructor(public postService: PostService, public route: ActivatedRoute, public router: Router, public commentService: CommentService) { }
 
   async ngOnInit() {
-    let postId : string | null = this.route.snapshot.paramMap.get("postId");
+    let postId: string | null = this.route.snapshot.paramMap.get("postId");
 
-    if(postId != null){
+    if (postId != null) {
       this.post = await this.postService.getPost(+postId, this.sorting);
       console.log(this.post)
       this.newMainCommentText = this.post.mainComment == null ? "" : this.post.mainComment.text;
-      if(this.post.mainComment?.pictureIds!=null)
-      this.imageCount=this.post.mainComment?.pictureIds?.length
-      
-     
-      
+      if (this.post.mainComment?.pictureIds != null)
+        this.imageCount = this.post.mainComment?.pictureIds?.length
+
+
+
     }
-    
-    
+
+
     this.isAuthor = localStorage.getItem("username") == this.post?.mainComment?.username;
   }
 
-  async toggleSorting(){
-    if(this.post == null) return;
+  async toggleSorting() {
+    if (this.post == null) return;
     this.post = await this.postService.getPost(this.post.id, this.sorting);
   }
 
   // Créer un commentaire directement associé au commentaire principal du post
-  async createComment(){
-    if(this.newComment == ""){
+  async createComment() {
+    if (this.newComment == "") {
       alert("Écris un commentaire niochon");
       return;
     }
 
-    if(this.myPicture == null) return;
-
-    let file = this.myPicture.nativeElement.files[0];
-    if(file == null) return;
-
     let formData = new FormData();
-    let count = 0;
-    while(file != null){
-      formData.append("image" + count, file);
-      count++;
-      file = this.myPicture.nativeElement.files[count];
+
+    if (this.myPicture != null) {
+      let file = this.myPicture.nativeElement.files[0];
+      if (file == null) return;
+
+
+      let count = 0;
+      while (file != null) {
+        formData.append("image" + count, file);
+        count++;
+        file = this.myPicture.nativeElement.files[count];
+      }
     }
+
+
     formData.append("text", this.newComment)
 
     this.post?.mainComment?.subComments?.push(await this.commentService.postComment(formData, this.post.mainComment.id));
@@ -92,53 +96,53 @@ export class PostComponent {
   }
 
   // Upvote le commentaire principal du post
-  async upvote(){
-    if(this.post == null || this.post.mainComment == null) return;
+  async upvote() {
+    if (this.post == null || this.post.mainComment == null) return;
     await this.commentService.upvote(this.post.mainComment.id);
-    if(this.post.mainComment.upvoted){
+    if (this.post.mainComment.upvoted) {
       this.post.mainComment.upvotes -= 1;
     }
-    else{
+    else {
       this.post.mainComment.upvotes += 1;
     }
     this.post.mainComment.upvoted = !this.post.mainComment.upvoted;
-    if(this.post.mainComment.downvoted){
+    if (this.post.mainComment.downvoted) {
       this.post.mainComment.downvoted = false;
       this.post.mainComment.downvotes -= 1;
     }
   }
 
   // Downvote le commentaire principal du post
-  async downvote(){
-    if(this.post == null || this.post.mainComment == null) return;
+  async downvote() {
+    if (this.post == null || this.post.mainComment == null) return;
     await this.commentService.downvote(this.post.mainComment.id);
-    if(this.post.mainComment.downvoted){
+    if (this.post.mainComment.downvoted) {
       this.post.mainComment.downvotes -= 1;
     }
-    else{
+    else {
       this.post.mainComment.downvotes += 1;
     }
     this.post.mainComment.downvoted = !this.post.mainComment.downvoted;
-    if(this.post.mainComment.upvoted){
+    if (this.post.mainComment.upvoted) {
       this.post.mainComment.upvoted = false;
       this.post.mainComment.upvotes -= 1;
     }
   }
 
   // Modifier le commentaire principal du post
-  async editMainComment(){
-    if(this.post == null || this.post.mainComment == null) return;
-    
-    var formData= new FormData();
-    if(this.pictureInput!=undefined){
-      
-      let i =0
-      for(let f of this.pictureInput.nativeElement.files){
-        formData.append("image"+i,f,f.name)
+  async editMainComment() {
+    if (this.post == null || this.post.mainComment == null) return;
+
+    var formData = new FormData();
+    if (this.pictureInput != undefined) {
+
+      let i = 0
+      for (let f of this.pictureInput.nativeElement.files) {
+        formData.append("image" + i, f, f.name)
         i++
       }
     }
-    formData.append("editedText",this.newMainCommentText)
+    formData.append("editedText", this.newMainCommentText)
     console.log(this.newMainCommentText)
     console.log(formData)
     /*let commentDTO = {
@@ -151,30 +155,34 @@ export class PostComponent {
   }
 
   // Supprimer le commentaire principal du post. Notez que ça ne va pas supprimer le post en entier s'il y a le moindre autre commentaire.
-  async deleteComment(){
-    if(this.post == null || this.post.mainComment == null) return;
+  async deleteComment() {
+    if (this.post == null || this.post.mainComment == null) return;
     await this.commentService.deleteComment(this.post.mainComment.id);
     this.router.navigate(["/"]);
   }
 
-  ngAfterViewInit(){
-    this.glideitems.changes.subscribe(e=>{this.initGlide();});
-    if(this.glideitems.length>0){
+  ngAfterViewInit() {
+    this.glideitems.changes.subscribe(e => { this.initGlide(); });
+    if (this.glideitems.length > 0) {
       this.initGlide();
     }
   }
 
-  initGlide(){
-    var glide = new Glide('.glide',{
+  initGlide() {
+    var glide = new Glide('.glide', {
       type: 'carousel',
-      focusAt:'center',
-      perView: Math.ceil(window.innerWidth/400)
+      focusAt: 'center',
+      perView: Math.ceil(window.innerWidth / 400)
     });
     glide.mount();
   }
 
-  async deletePicture(id : number){
+  async deletePicture(id: number) {
     await this.commentService.deletePicture(id);
     this.post?.mainComment?.pictureIds?.splice(this.post?.mainComment?.pictureIds.indexOf(id), 1)
+  }
+
+  async report(id : number){
+    await this.commentService.signaler(id)
   }
 }
