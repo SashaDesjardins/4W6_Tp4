@@ -99,21 +99,32 @@ namespace PostHubServer.Controllers
             {
                 IFormCollection formCollection = await Request.ReadFormAsync();
                 IFormFile? file = formCollection.Files.GetFile("image");
-                Image image = Image.Load(file.OpenReadStream());
-                if (oldPassword != null && newPassword != null) {
+                if(file != null && (oldPassword == null || newPassword == null))
+                {
+                    Image image = Image.Load(file.OpenReadStream());
+                    user.FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    user.MimeType = file.ContentType;
+                    image.Save(Directory.GetCurrentDirectory() + "/images/avatar/" + user.FileName);
+                }
+                else if (oldPassword != null && newPassword != null && file == null) {
                     await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
                 }
-                
-                user.FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                user.MimeType = file.ContentType;
-                image.Save(Directory.GetCurrentDirectory() + "/images/avatar/" + user.FileName);
+                else if (file != null && oldPassword != null && newPassword != null)
+                {
+                    Image image = Image.Load(file.OpenReadStream());
+                    user.FileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    user.MimeType = file.ContentType;
+                    image.Save(Directory.GetCurrentDirectory() + "/images/avatar/" + user.FileName);
+
+                    await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+                }
                 await _userManager.UpdateAsync(user);
             }
             catch (Exception)
             {
                 throw;
             }
-            return Ok();
+            return Ok(new { Message = "Modification reussi" });
         }
 
         [HttpGet("{pseudo}")]

@@ -38,17 +38,33 @@ export class ProfileComponent {
 
   async edit()
   {
-    if(this.myPicture == null) return;
+    let file = null;
+    if(this.myPicture != null) {
+      file = this.myPicture.nativeElement.files[0];
+    }
     
-    let file = this.myPicture.nativeElement.files[0];
-    if(file == null) return;
-
-    let formData = new FormData();
-
-    formData.append("image", file);
-    formData.append("old",this.oldPassword);
-    formData.append("new",this.newPassword);
-
-    await this.userService.edit(formData);
+    if(this.oldPassword == "" && this.newPassword == "" &&this.newPasswordConfirm == "" && file != null)
+    {
+      let formData1 = new FormData();
+      formData1.append("image", file);
+      await this.userService.edit(formData1);
+    }
+    else if(this.oldPassword != "" && this.newPassword != "" &&this.newPasswordConfirm != "" && file == null)
+    {
+      let formData2 = new FormData();
+      formData2.append("old",this.oldPassword);
+      formData2.append("new",this.newPassword);
+      await this.userService.edit(formData2);
+    }
+    else if(this.oldPassword != "" && this.newPassword != "" &&this.newPasswordConfirm != "" && file != null){
+      let formData3 = new FormData();
+      formData3.append("image", file);
+      formData3.append("old",this.oldPassword);
+      formData3.append("new",this.newPassword);
+      await this.userService.edit(formData3);
+    }
+    this.oldPassword = "";
+    this.newPassword = "";
+    this.newPasswordConfirm = "";
   }
 }

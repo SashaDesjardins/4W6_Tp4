@@ -177,6 +177,7 @@ namespace PostHubServer.Controllers
         public async Task<ActionResult> DeleteComment(int commentId)
         {
             User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            bool isMod = await _userManager.IsInRoleAsync(user, "moderator");
 
             Comment? comment = await _commentService.GetComment(commentId);
             if (comment == null) return NotFound();
@@ -185,7 +186,7 @@ namespace PostHubServer.Controllers
                 await _pictureService.DeletePicture(comment.Pictures[x]);
             }
             
-            if (user == null || comment.User != user) return Unauthorized();
+            if (user == null || comment.User != user && !isMod) return Unauthorized();
 
             // Cette boucle permet non-seulement de supprimer le commentaire lui-même, mais s'il possède
             // un commentaire parent qui a été soft-delete et qui n'a pas de sous-commentaires,
@@ -262,6 +263,15 @@ namespace PostHubServer.Controllers
             if (!report) return StatusCode(StatusCodes.Status500InternalServerError);
 
             return Ok(new { Message = "Report complété." });
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetCommentSignaler()
+        {
+            List<Comment>? comments = await _commentService.GetAllComments();
+            List<Comment>? commentsSignaler = comments.Where(x => x.Reporters != null).ToList();
+
+            return Ok(commentsSignaler?.Select(c => new CommentDisplayDTO(c, true, null)));
         }
     }
 }

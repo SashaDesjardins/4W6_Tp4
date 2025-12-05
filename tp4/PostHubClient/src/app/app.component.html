@@ -25,6 +25,8 @@
 
       <div [routerLink]="['/postList', 'discover']">Découvrir</div>
 
+      <div [routerLink]="['reports']" *ngIf="userService.rolesSignal().includes('moderator')">Modération</div>
+
       <div [routerLink]="['admin']" *ngIf="userService.rolesSignal().includes('admin')">Administration</div>
 
       <div id="hubs" (click)="toggleHubs()">Vos hubs <fa-icon [icon]="faChevronDown"></fa-icon>

@@ -1,4 +1,5 @@
-﻿using PostHubServer.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using PostHubServer.Data;
 using PostHubServer.Models;
 
 namespace PostHubServer.Services
@@ -157,6 +158,11 @@ namespace PostHubServer.Services
             await _context.SaveChangesAsync();
 
             return true; // Basculement du downvote réussi
+        }
+
+        public async Task<List<Comment>?> GetAllComments()
+        {
+            return await _context.Comments.ToListAsync();
         }
 
         private bool IsContextNull() => _context == null || _context.Comments == null;

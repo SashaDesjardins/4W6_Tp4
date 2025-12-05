@@ -18,6 +18,7 @@ export class ModerateCommentsComponent {
 
   async ngOnInit() {
     // On doit remplir la liste commentList ici avec tous les commentaires signalés !
+    this.commentList = await this.commentService.commentSignaler();
   }
 
   async deleteComment(comment : Comment){
