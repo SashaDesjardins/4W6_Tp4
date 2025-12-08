@@ -12,6 +12,8 @@ namespace PostHubServer.Data
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            base.OnModelCreating(builder);
+
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole { Id = "1", Name = "admin", NormalizedName = "ADMIN" },
                 new IdentityRole { Id = "2", Name = "moderator", NormalizedName = "MODERATOR" }
@@ -25,10 +27,21 @@ namespace PostHubServer.Data
                 NormalizedEmail="COOL@ADMIN69.COM"
             };
             user.PasswordHash = hasher.HashPassword(user, "Salut1!");
-            builder.Entity<User>().HasData(user);
+
+            User user2 = new User
+            {
+                Id = "11111111-1111-1111-1111-111111111112",
+                UserName = "Mod69",
+                Email = "mod@mail.com",
+                NormalizedUserName = "MOD69",
+                NormalizedEmail = "MOD@MAIL.COM"
+            };
+            user2.PasswordHash = hasher.HashPassword(user2, "Salut1!");
+
+            builder.Entity<User>().HasData(user, user2);
             builder.Entity<IdentityUserRole<string>>().HasData(
-                new IdentityUserRole<string> { UserId=user.Id,RoleId="1"});
-            base.OnModelCreating(builder);
+                new IdentityUserRole<string> { UserId=user.Id,RoleId="1"},
+                new IdentityUserRole<string> { UserId = user2.Id, RoleId = "2" });
         }
 
         public DbSet<Hub> Hubs { get; set; } = default!;

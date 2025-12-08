@@ -254,7 +254,7 @@ namespace PostHubServer.Controllers
 
         [HttpPut("{commentId}")]
         [Authorize]
-        public async Task<ActionResult> Signaler(int commentId)
+        public async Task<ActionResult> ReportComment(int commentId)
         {
             User? user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             if (user == null) return BadRequest();
@@ -266,7 +266,7 @@ namespace PostHubServer.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetCommentSignaler()
+        public async Task<ActionResult> GetReportedComments()
         {
             List<Comment>? comments = await _commentService.GetAllComments();
             List<Comment>? commentsSignaler = comments.Where(x => x.Reporters != null).ToList();
