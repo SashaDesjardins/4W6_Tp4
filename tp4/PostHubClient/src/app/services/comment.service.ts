@@ -62,7 +62,7 @@ export class CommentService {
 
   async commentSignaler() : Promise<Comment[]>
   {
-    let x = await lastValueFrom(this.http.get<any>(domain + "api/Comments/GetReportedCommens"));
+    let x = await lastValueFrom(this.http.get<any>(domain + "api/Comments/GetReportedComments"));
     console.log(x);
     return x
   }
